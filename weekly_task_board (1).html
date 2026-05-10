@@ -1,0 +1,501 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans);background:transparent;}
+.app{padding:.75rem 0;max-width:100%;}
+
+.tabs{display:flex;gap:5px;margin-bottom:1rem;flex-wrap:wrap;}
+.tab{padding:7px 13px;border-radius:var(--border-radius-md);border:.5px solid var(--color-border-secondary);background:transparent;cursor:pointer;font-size:13px;color:var(--color-text-secondary);font-family:var(--font-sans);}
+.tab.active{background:var(--color-background-secondary);color:var(--color-text-primary);border-color:var(--color-border-primary);font-weight:500;}
+.screen{display:none;}
+.screen.active{display:block;}
+
+.card{background:var(--color-background-primary);border:.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:.875rem 1rem;margin-bottom:.875rem;}
+.sec{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:.625rem;}
+.sub{font-size:12px;color:var(--color-text-tertiary);margin-bottom:.5rem;line-height:1.6;}
+
+.today-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;}
+.today-date{font-size:13px;color:var(--color-text-secondary);}
+.day-pill{font-size:11px;padding:3px 8px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);font-weight:500;}
+.day-pill.weekend{background:#FAEEDA;color:#412402;}
+
+.task-row{padding:10px 0;border-bottom:.5px solid var(--color-border-tertiary);display:flex;align-items:flex-start;gap:9px;}
+.task-row:last-child{border-bottom:none;}
+.task-check{width:26px;height:26px;border:2px solid #6B7280;border-radius:5px;flex-shrink:0;margin-top:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;color:transparent;background:#F9FAFB;transition:all .15s;}
+.task-check:hover{border-color:#374151;background:#F3F4F6;}
+.task-check.done{background:#085041;color:white;border-color:#085041;}
+.task-body{flex:1;}
+.task-title{font-size:13px;color:var(--color-text-primary);font-weight:500;line-height:1.5;}
+.task-title.done{text-decoration:line-through;color:var(--color-text-tertiary);}
+.task-meta{font-size:11px;color:var(--color-text-tertiary);margin-top:3px;line-height:1.5;}
+.task-subj{display:inline-block;padding:2px 7px;border-radius:var(--border-radius-md);font-size:10px;font-weight:500;margin-right:5px;}
+.s-math{background:#EEEDFE;color:#26215C;}
+.s-japanese{background:#FCEBEB;color:#501313;}
+.s-science{background:#E1F5EE;color:#085041;}
+.s-social{background:#FAEEDA;color:#412402;}
+.s-daily{background:#E6F1FB;color:#042C53;}
+.s-school{background:#FEF3C7;color:#78350F;}
+
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.75rem;}
+.summary-item{background:var(--color-background-secondary);padding:.625rem .75rem;border-radius:var(--border-radius-md);}
+.summary-label{font-size:10px;color:var(--color-text-tertiary);}
+.summary-value{font-size:18px;font-weight:500;color:var(--color-text-primary);margin-top:2px;}
+
+.week-grid{display:flex;gap:6px;overflow-x:auto;padding-bottom:5px;}
+.day-col{min-width:130px;flex:1;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.625rem;}
+.day-col.today{border:1px solid var(--color-border-primary);background:var(--color-background-primary);}
+.day-name{font-size:12px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px;}
+.day-progress{font-size:10px;color:var(--color-text-tertiary);margin-bottom:8px;}
+.mini-task{font-size:11px;color:var(--color-text-secondary);padding:4px 0;line-height:1.4;border-bottom:.5px dashed var(--color-border-tertiary);display:flex;gap:5px;}
+.mini-task:last-child{border-bottom:none;}
+.mini-task.done{color:var(--color-text-tertiary);text-decoration:line-through;}
+.mini-task .dot{width:6px;height:6px;border-radius:50%;background:var(--color-border-primary);flex-shrink:0;margin-top:5px;}
+.mini-task.done .dot{background:#085041;}
+
+.cycle-banner{background:#FCEBEB;color:#501313;padding:.625rem .875rem;border-radius:var(--border-radius-md);font-size:12px;line-height:1.6;margin-bottom:.875rem;}
+.cycle-banner b{font-weight:600;}
+
+.rule-item{padding:8px 0;border-bottom:.5px solid var(--color-border-tertiary);font-size:12px;line-height:1.65;color:var(--color-text-secondary);}
+.rule-item:last-child{border-bottom:none;}
+.rule-item b{color:var(--color-text-primary);font-weight:500;}
+
+.btn{padding:7px 14px;background:var(--color-background-secondary);border:.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);cursor:pointer;font-size:12px;color:var(--color-text-primary);font-family:var(--font-sans);margin-right:5px;}
+.btn:hover{background:var(--color-background-tertiary);}
+
+.streak-row{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
+.streak-day{width:28px;height:24px;border-radius:4px;background:var(--color-background-secondary);font-size:9px;display:flex;align-items:center;justify-content:center;color:var(--color-text-tertiary);}
+.streak-day.done{background:#085041;color:white;}
+.streak-day.partial{background:#FAEEDA;color:#412402;}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+</style>
+
+<div class="app">
+<h2 class="sr-only">週間タスクボード</h2>
+
+<div class="tabs">
+  <button class="tab active" onclick="sw('today',this)">今日</button>
+  <button class="tab" onclick="sw('week',this)">1週間</button>
+  <button class="tab" onclick="sw('rules',this)">ルール</button>
+</div>
+
+<div id="screen-today" class="screen active">
+  <div class="cycle-banner" id="cycle-banner"></div>
+  
+  <div class="card">
+    <div class="today-header">
+      <div class="today-date" id="today-date"></div>
+      <div class="day-pill" id="day-pill"></div>
+    </div>
+    
+    <div class="summary">
+      <div class="summary-item">
+        <div class="summary-label">今日の進捗</div>
+        <div class="summary-value" id="today-progress">0 / 0</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">毎日タスク 連続</div>
+        <div class="summary-value" id="streak-count">0日</div>
+      </div>
+    </div>
+    
+    <div class="sec" style="margin-top:.875rem;">毎日やること（聖域・約25分）</div>
+    <div class="sub">これは絶対動かさない。何があってもこれだけはやる。学校の宿題は帰宅後すぐ最優先で。</div>
+    <div id="daily-tasks"></div>
+  </div>
+  
+  <div class="card">
+    <div class="sec" id="day-tasks-title">今日のメインタスク</div>
+    <div class="sub" id="day-tasks-sub"></div>
+    <div id="day-tasks"></div>
+  </div>
+</div>
+
+<div id="screen-week" class="screen">
+  <div class="card">
+    <div class="sec">1週間のリズム</div>
+    <div class="sub">土日で宿題完遂 → 月〜金で復習。これが基本ループ。</div>
+    <div class="week-grid" id="week-grid"></div>
+  </div>
+  
+  <div class="card">
+    <div class="sec">毎日タスクの記録（直近14日）</div>
+    <div class="sub">3つ全部できた日 = 緑、一部 = オレンジ、なし = グレー</div>
+    <div class="streak-row" id="streak-row"></div>
+  </div>
+</div>
+
+<div id="screen-rules" class="screen">
+  <div class="card">
+    <div class="sec">基本ルール</div>
+    <div class="rule-item"><b>木・金：</b>塾日で帰宅遅め。毎日タスクだけは死守、それ以外は最小限</div>
+    <div class="rule-item"><b>土曜午前：</b>週テスト本番。前の朝時間は軽い確認のみ（新しい問題に手を出さない）</div>
+    <div class="rule-item"><b>土曜午後・日曜：</b>宿題完遂デー。月曜に持ち越さない</div>
+    <div class="rule-item"><b>月・火・水：</b>復習デー（木金に動けない分ここに集中）</div>
+    <div class="rule-item"><b>毎日：</b>学校の宿題＋計算10問＋漢字5〜10語＋前日の算数1問＋前日の国語1問（聖域・約25分）</div>
+    <div class="rule-item"><b>1分ルール：</b>算数で1分考えて方針が見えなければ次へ進む</div>
+    <div class="rule-item"><b>ミスノート：</b>出たケアレスを1行で記録（負担を増やさない）</div>
+  </div>
+  
+  <div class="card">
+    <div class="sec">「前日のミス1問」の狙い</div>
+    <div class="rule-item">復習そのものは曜日別タスクで深く掘る。毎日タスクは<b>24時間以内に再接触して忘却を防ぐ</b>のが目的</div>
+    <div class="rule-item"><b>算数：</b>ケアレス・計算ミスが最大の課題。同じミスを繰り返さない習慣化</div>
+    <div class="rule-item"><b>国語：</b>漢字の字形ミス対策（組分け②で社会にも波及した「邦覇」の再発防止）</div>
+    <div class="rule-item">理科は武器なので毎日触る必要なし（火曜にまとめて）。社会も毎日入れない</div>
+  </div>
+  
+  <div class="card">
+    <div class="sec">ケアレス対策（仕組みで減らす）</div>
+    <div class="rule-item">1. 計算用紙を縦に区切って大問ごとに使う</div>
+    <div class="rule-item">2. 答えを書いたら問題文の数字を○で囲む</div>
+    <div class="rule-item">3. 単位を書いた瞬間に問題文の単位を再確認</div>
+    <div class="rule-item">4. ミスノートを毎週末に見返す</div>
+    <div class="rule-item">5. 漢字は字形まで確認（組分け②で「邦覇/和歌山城」のような致命傷を出さない）</div>
+  </div>
+  
+  <div class="card">
+    <div class="sec">曜日別の復習配分（実情ベース）</div>
+    <div class="rule-item"><b>月：</b>算数メイン復習＋漢字短時間 — 当週宿題で間違えた問題を白紙からやり直し（30分）</div>
+    <div class="rule-item"><b>火：</b>理科深掘り＋社会(週テスト範囲を軽く) — 武器の理科を維持、社会は要点だけ</div>
+    <div class="rule-item"><b>水：</b>算数2回目復習(忘却対策)＋国語 — 木曜が動けないため国語をここに</div>
+    <div class="rule-item"><b>木：</b>塾日 — 毎日タスクのみ死守。余裕あれば算数1問</div>
+    <div class="rule-item"><b>金：</b>塾日 — 毎日タスクのみ死守。漢字を眺める程度</div>
+    <div class="rule-item"><b>土朝：</b>テスト前の頭起動 — 計算5問＋漢字＋理科要点（合計約20分）</div>
+    <div class="rule-item"><b>土午後/日：</b>宿題完遂 — 算国→理社の順で</div>
+  </div>
+  
+  <div class="card">
+    <div class="sec">教科の優先度</div>
+    <div class="rule-item">関西受験前提のため、社会は最低限。<b>算数 &gt; 国語 ≧ 理科 &gt; 社会</b></div>
+    <div class="rule-item">国語は漢字・語彙・設問の型を優先（長文を増やさない）</div>
+    <div class="rule-item">算数は基本〜標準の高速化＋飛ばし判断＋見直しでミス0</div>
+    <div class="rule-item">社会は週テスト範囲の最低限カバーだけ、深追いしない</div>
+  </div>
+  
+  <div class="card">
+    <div class="sec">データのリセット</div>
+    <div class="sub">月曜になっても進捗は保持されます。手動でリセットすることもできます。</div>
+    <button class="btn" onclick="resetWeek()" style="margin-top:8px;">今週の進捗をリセット</button>
+    <button class="btn" onclick="resetAll()" style="margin-top:8px;">全データをリセット</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const DAILY_TASKS = [
+  {id:'d-school', subj:'school', title:'学校の宿題', meta:'帰宅後すぐ・最優先'},
+  {id:'d-calc', subj:'daily', title:'計算ドリル 10問', meta:'苦手単元・約10分'},
+  {id:'d-kanji', subj:'daily', title:'漢字・語彙 5〜10語', meta:'oteu.netも可・約5分'},
+  {id:'d-miss-math', subj:'math', title:'前日の算数ミス 1問やり直し', meta:'白紙から解く・約3分'},
+  {id:'d-miss-jp', subj:'japanese', title:'前日の国語ミス 1問(漢字優先)', meta:'字形まで意識・約3分'},
+];
+
+const WEEKLY_TASKS = {
+  0: { // 日曜
+    label: '日曜（宿題完遂デー）',
+    sub: '宿題を全部終わらせる日。月曜に持ち越さない。',
+    tasks: [
+      {id:'sun-1', subj:'math', title:'算数の宿題（メイン）', meta:'午前・最優先'},
+      {id:'sun-2', subj:'japanese', title:'国語の宿題', meta:'午前'},
+      {id:'sun-3', subj:'science', title:'理科の宿題', meta:'午後'},
+      {id:'sun-4', subj:'social', title:'社会の宿題', meta:'午後・割り切って軽く'},
+      {id:'sun-5', subj:'japanese', title:'漢字 oteu.net 該当回 1セット', meta:'土日のどこかで必ず'},
+      {id:'sun-6', subj:'math', title:'週テスト前なら範囲復習', meta:'当週単元の総まとめ・任意'},
+    ]
+  },
+  1: { // 月曜
+    label: '月曜（算数 復習デー①・本命）',
+    sub: '木金は塾で動けないので、月火水に復習を集中。月曜は算数のメイン復習日。',
+    tasks: [
+      {id:'mon-1', subj:'math', title:'当週宿題で間違えた算数を白紙からやり直し', meta:'30分・最重要'},
+      {id:'mon-2', subj:'math', title:'解けなかった問題は手順を声に出して説明', meta:'10分・理解の確認'},
+      {id:'mon-3', subj:'japanese', title:'漢字テストか語彙5〜10語', meta:'10分・短く'},
+    ]
+  },
+  2: { // 火曜
+    label: '火曜（理科 深掘りデー）',
+    sub: '理科は要点を口で説明できれば本当に分かっている証拠。武器の理科を維持・伸長。',
+    tasks: [
+      {id:'tue-1', subj:'science', title:'当週単元の要点を口頭で説明', meta:'5分・親が聞き役'},
+      {id:'tue-2', subj:'science', title:'演習問題集の該当回', meta:'25分'},
+      {id:'tue-3', subj:'social', title:'当週(週テスト範囲)の社会を軽く確認', meta:'10分・要点だけ・深追いしない'},
+    ]
+  },
+  3: { // 水曜
+    label: '水曜（算数 忘却対策＋国語）',
+    sub: '木金が動けない分、水曜に算数の2回目復習と国語を入れる。',
+    tasks: [
+      {id:'wed-1', subj:'math', title:'1〜2回前の単元から基本問題5〜10問', meta:'スピード重視・15分'},
+      {id:'wed-2', subj:'math', title:'タイマーで「1分ルール」練習', meta:'方針見えなければ飛ばす・10分'},
+      {id:'wed-3', subj:'japanese', title:'設問の型1テーマ＋語彙', meta:'15分・木曜が動けないため'},
+    ]
+  },
+  4: { // 木曜
+    label: '木曜（塾日・最小限）',
+    sub: '塾で帰宅遅め。毎日タスクだけ確実に。プラスで余裕があれば前日のミス見直し。',
+    tasks: [
+      {id:'thu-1', subj:'math', title:'余裕があれば算数の宿題1問だけ', meta:'任意・15分以内'},
+    ]
+  },
+  5: { // 金曜
+    label: '金曜（塾日・最小限）',
+    sub: '塾で帰宅遅め。毎日タスクだけ確実に。週末に向けて体力温存。',
+    tasks: [
+      {id:'fri-1', subj:'japanese', title:'余裕があれば漢字を眺める', meta:'任意・10分以内'},
+    ]
+  },
+  6: { // 土曜
+    label: '土曜（午前テスト・午後宿題完遂）',
+    sub: '午前は週テスト。テスト前の朝時間は軽い確認だけ。午後から宿題本番。',
+    tasks: [
+      {id:'sat-am-1', subj:'math', title:'【テスト前】計算ドリル5問で頭を起動', meta:'朝・10分'},
+      {id:'sat-am-2', subj:'japanese', title:'【テスト前】漢字を眺めて確認', meta:'朝・5分・新しい問題は解かない'},
+      {id:'sat-am-3', subj:'science', title:'【テスト前】今週単元の要点をサッと見る', meta:'朝・5分・お守り程度'},
+      {id:'sat-1', subj:'math', title:'算数の宿題（メイン）', meta:'午後・テスト後'},
+      {id:'sat-2', subj:'japanese', title:'国語の宿題', meta:'午後'},
+      {id:'sat-3', subj:'science', title:'理科の宿題', meta:'午後・夕方'},
+      {id:'sat-4', subj:'social', title:'社会の宿題', meta:'午後・夕方'},
+    ]
+  },
+};
+
+const DAY_NAMES = ['日','月','火','水','木','金','土'];
+let progress = {};
+
+function dKey(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todayKey(){ return dKey(new Date()); }
+function dateOffset(offset){
+  const d = new Date();
+  d.setDate(d.getDate()+offset);
+  return d;
+}
+
+function getProg(k){ if(!progress[k]) progress[k]={}; return progress[k]; }
+function isDone(k, id){ return !!getProg(k)[id]; }
+function setDone(k, id, done){
+  getProg(k)[id] = done;
+  saveProg();
+}
+
+function sw(name, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('screen-'+name).classList.add('active');
+  if(name==='week') renderWeek();
+}
+
+function renderToday(){
+  const today = new Date();
+  const dow = today.getDay();
+  const k = todayKey();
+  
+  document.getElementById('today-date').textContent = `${today.getMonth()+1}月${today.getDate()}日（${DAY_NAMES[dow]}曜日）`;
+  
+  const pill = document.getElementById('day-pill');
+  const isWeekend = (dow===0 || dow===6);
+  pill.textContent = isWeekend ? '宿題完遂デー' : '復習デー';
+  pill.className = 'day-pill' + (isWeekend ? ' weekend' : '');
+  
+  const banner = document.getElementById('cycle-banner');
+  if(isWeekend){
+    banner.innerHTML = '<b>週末は宿題完遂デー。</b>月曜に持ち越さないで全部終わらせよう。終わったら復習の時間が増える。';
+  } else {
+    banner.innerHTML = '<b>平日は復習デー。</b>宿題は土日で終わっているはず。今日は当週の理解を深める日。';
+  }
+  
+  const dailyC = document.getElementById('daily-tasks');
+  dailyC.innerHTML = '';
+  let dailyDone = 0;
+  DAILY_TASKS.forEach(t => {
+    const done = isDone(k, t.id);
+    if(done) dailyDone++;
+    dailyC.appendChild(buildRow(t, k, done));
+  });
+  
+  const dayDef = WEEKLY_TASKS[dow];
+  document.getElementById('day-tasks-title').textContent = dayDef.label;
+  document.getElementById('day-tasks-sub').textContent = dayDef.sub;
+  const dayC = document.getElementById('day-tasks');
+  dayC.innerHTML = '';
+  let dayDone = 0;
+  dayDef.tasks.forEach(t => {
+    const done = isDone(k, t.id);
+    if(done) dayDone++;
+    dayC.appendChild(buildRow(t, k, done));
+  });
+  
+  const total = DAILY_TASKS.length + dayDef.tasks.length;
+  const done = dailyDone + dayDone;
+  document.getElementById('today-progress').textContent = `${done} / ${total}`;
+  document.getElementById('streak-count').textContent = `${calcStreak()}日`;
+}
+
+function buildRow(task, k, done){
+  const row = document.createElement('div');
+  row.className = 'task-row';
+  
+  const check = document.createElement('div');
+  check.className = 'task-check' + (done ? ' done' : '');
+  check.textContent = done ? '✓' : '';
+  check.onclick = () => {
+    setDone(k, task.id, !done);
+    renderToday();
+  };
+  
+  const body = document.createElement('div');
+  body.className = 'task-body';
+  
+  const title = document.createElement('div');
+  title.className = 'task-title' + (done ? ' done' : '');
+  
+  const subjLbl = {
+    'math':'算数','japanese':'国語','science':'理科','social':'社会','daily':'毎日','school':'学校'
+  }[task.subj] || task.subj;
+  
+  title.innerHTML = `<span class="task-subj s-${task.subj}">${subjLbl}</span>${task.title}`;
+  body.appendChild(title);
+  
+  if(task.meta){
+    const meta = document.createElement('div');
+    meta.className = 'task-meta';
+    meta.textContent = task.meta;
+    body.appendChild(meta);
+  }
+  
+  row.appendChild(check);
+  row.appendChild(body);
+  return row;
+}
+
+function renderWeek(){
+  const grid = document.getElementById('week-grid');
+  grid.innerHTML = '';
+  const today = new Date();
+  const dow = today.getDay();
+  const monOffset = dow === 0 ? -6 : 1 - dow;
+  
+  for(let i=0; i<7; i++){
+    const offset = monOffset + i;
+    const d = dateOffset(offset);
+    const k = dKey(d);
+    const dayOfWeek = d.getDay();
+    const isToday = (offset === 0);
+    
+    const col = document.createElement('div');
+    col.className = 'day-col' + (isToday ? ' today' : '');
+    
+    const name = document.createElement('div');
+    name.className = 'day-name';
+    name.textContent = `${DAY_NAMES[dayOfWeek]} ${d.getMonth()+1}/${d.getDate()}${isToday ? ' (今日)' : ''}`;
+    col.appendChild(name);
+    
+    const dayDef = WEEKLY_TASKS[dayOfWeek];
+    const allTasks = [...DAILY_TASKS, ...dayDef.tasks];
+    let doneCount = 0;
+    allTasks.forEach(t => { if(isDone(k, t.id)) doneCount++; });
+    
+    const prog = document.createElement('div');
+    prog.className = 'day-progress';
+    prog.textContent = `${doneCount} / ${allTasks.length}`;
+    col.appendChild(prog);
+    
+    allTasks.forEach(t => {
+      const mt = document.createElement('div');
+      const done = isDone(k, t.id);
+      mt.className = 'mini-task' + (done ? ' done' : '');
+      mt.innerHTML = `<div class="dot"></div><div>${t.title}</div>`;
+      col.appendChild(mt);
+    });
+    
+    grid.appendChild(col);
+  }
+  
+  renderStreak();
+}
+
+function renderStreak(){
+  const row = document.getElementById('streak-row');
+  row.innerHTML = '';
+  for(let i=13; i>=0; i--){
+    const d = dateOffset(-i);
+    const k = dKey(d);
+    let dailyDone = 0;
+    DAILY_TASKS.forEach(t => { if(isDone(k, t.id)) dailyDone++; });
+    
+    const cell = document.createElement('div');
+    cell.className = 'streak-day';
+    if(dailyDone === DAILY_TASKS.length) cell.classList.add('done');
+    else if(dailyDone > 0) cell.classList.add('partial');
+    cell.textContent = `${d.getMonth()+1}/${d.getDate()}`;
+    cell.title = `${dailyDone}/${DAILY_TASKS.length}`;
+    row.appendChild(cell);
+  }
+}
+
+function calcStreak(){
+  let streak = 0;
+  for(let i=0; i<60; i++){
+    const k = dKey(dateOffset(-i));
+    let dailyDone = 0;
+    DAILY_TASKS.forEach(t => { if(isDone(k, t.id)) dailyDone++; });
+    if(dailyDone === DAILY_TASKS.length){
+      streak++;
+    } else {
+      if(i === 0) continue;
+      break;
+    }
+  }
+  return streak;
+}
+
+async function loadProg(){
+  try{
+    const result = await window.storage.get('weeklyTaskProgress_v1');
+    if(result && result.value){
+      progress = JSON.parse(result.value);
+    }
+  } catch(e){
+    progress = {};
+  }
+  const cutoff = dKey(dateOffset(-60));
+  Object.keys(progress).forEach(k => {
+    if(k < cutoff) delete progress[k];
+  });
+}
+
+async function saveProg(){
+  try{
+    await window.storage.set('weeklyTaskProgress_v1', JSON.stringify(progress));
+  } catch(e){
+    console.error('保存に失敗', e);
+  }
+}
+
+function resetWeek(){
+  if(!confirm('今週の進捗をリセットしますか？')) return;
+  const today = new Date();
+  const dow = today.getDay();
+  const monOffset = dow === 0 ? -6 : 1 - dow;
+  for(let i=0; i<7; i++){
+    const k = dKey(dateOffset(monOffset + i));
+    delete progress[k];
+  }
+  saveProg();
+  renderToday();
+}
+
+function resetAll(){
+  if(!confirm('全データをリセットしますか？（連続日数も0に戻ります）')) return;
+  progress = {};
+  saveProg();
+  renderToday();
+}
+
+(async () => {
+  await loadProg();
+  renderToday();
+})();
+</script>
